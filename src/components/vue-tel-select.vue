@@ -8,12 +8,13 @@
             @click="toggleDropdown"
             @keydown.esc="reset"
     >
-      <span class="vti__selection">
-        <div v-if="enabledFlags" :class="['vti__flag', activeCountry.iso2.toLowerCase()]" />
+      <div class="vti__selection">
+        <div v-if="enabledFlags" :class="['vti__flag', activeCountry.iso2.toLowerCase()]">
+        </div>
         <slot name="arrow-icon" :open="open">
           <span class="vti__dropdown-arrow">{{ open ? "▲" : "▼" }}</span>
         </slot>
-      </span>
+      </div>
       <ul ref="list" class="vti__dropdown-list" v-show="open" :class="dropdownOpenDirection">
         <li
                 v-for="(phoneNumber, index) in phones"
@@ -320,7 +321,6 @@ export default {
         number: phone,
       });
     });
-    this.choose(this.phones[0]);
 
     this.initializeCountry()
       .then(() => {
@@ -335,6 +335,7 @@ export default {
       })
       .catch(console.error)
       .finally(() => {
+        this.choose(this.phones[0]);
         this.finishMounted = true;
       });
   },

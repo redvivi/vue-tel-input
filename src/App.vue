@@ -13,7 +13,7 @@
           @input="onInput"/>
       </div>
       <div style="width: 500px; margin: 20px auto;">
-        <vue-tel-select :input-numbers="['+385912345678', '+33778899887']"/>
+        <vue-tel-select :input-numbers="['+33778899887', '+385915910214']"/>
       </div>
       <div
         v-if="phone.number"
