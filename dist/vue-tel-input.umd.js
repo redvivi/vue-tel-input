@@ -4092,6 +4092,7 @@
   }
 
   exports.VueTelInput = __vue_component__;
+  exports.VueTelSelect = __vue_component__$1;
   exports.default = plugin;
   exports.install = install;
 

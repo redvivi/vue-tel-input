@@ -1874,4 +1874,4 @@ if (GlobalVue) {
 }
 
 export default plugin;
-export { __vue_component__ as VueTelInput, install };
+export { __vue_component__ as VueTelInput, __vue_component__$1 as VueTelSelect, install };

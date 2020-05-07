@@ -15,7 +15,7 @@ export function install(Vue, customOptions = {}) {
   Vue.component('vue-tel-select', VueTelSelect);
 }
 
-export { VueTelInput };
+export { VueTelInput, VueTelSelect };
 
 const plugin = {
   install,
