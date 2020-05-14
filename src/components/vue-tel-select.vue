@@ -25,7 +25,7 @@
         >
           <div v-if="enabledFlags" :class="['vti__flag', phoneNumber.iso2.toLowerCase()]" />
           <span v-if="dropdownOptions && !dropdownOptions.disabledDialCode">
-            {{  phoneNumber.number  }}
+            {{  parsedMode === 'national' ? phoneNumber.national : phoneNumber.number  }}
           </span>
         </li>
       </ul>
@@ -319,7 +319,7 @@ export default {
       this.phones.push({
         iso2: number.getRegionCode(),
         number: phone,
-        national: number.getNumber('national'),
+        national: number.getNumber('national').replace(/ /g, ''),
       });
     });
 
@@ -421,8 +421,7 @@ export default {
       };
     },
     choose(country, toEmitInputEvent = false) {
-      this.selectedPhone = country.number;
-
+      this.selectedPhone = this.parsedMode === 'national' ? country.national : country.number;
       let parsedCountry = country;
       if (typeof parsedCountry === 'string') {
         parsedCountry = this.findCountry(parsedCountry);
