@@ -21,12 +21,13 @@
                 :class="['vti__dropdown-item', getItemClass(index, phoneNumber.iso2)]"
                 :key="index"
                 @click="choose(phoneNumber, true)"
-                @mousemove="selectedIndex = index"
-        >
-          <div v-if="enabledFlags" :class="['vti__flag', phoneNumber.iso2.toLowerCase()]" />
+                @mousemove="selectedIndex = index">
+
+          <div v-if="enabledFlags" :class="['vti__flag', phoneNumber.iso2.toLowerCase()]"></div>
           <span v-if="dropdownOptions && !dropdownOptions.disabledDialCode">
             {{  parsedMode === 'national' ? phoneNumber.national : phoneNumber.number  }}
           </span>
+          <input type="hidden" id="internationalNumber" :value="phoneNumber.number">
         </li>
       </ul>
     </div>
@@ -274,7 +275,7 @@ export default {
       if (value) {
         this.phone = this.phoneText;
       }
-      this.$emit('validate', this.phoneObject);
+      this.$emit('validate-select', this.phoneObject);
       this.$emit('onValidate', this.phoneObject); // Deprecated
     },
     value() {
@@ -331,7 +332,7 @@ export default {
                 && this.activeCountry.dialCode) {
           this.phone = `+${this.activeCountry.dialCode}`;
         }
-        this.$emit('validate', this.phoneObject);
+        this.$emit('validate-select', this.phoneObject);
         this.$emit('onValidate', this.phoneObject); // Deprecated
       })
       .catch(console.error)
