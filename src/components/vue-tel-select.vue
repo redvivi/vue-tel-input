@@ -27,7 +27,7 @@
           <span v-if="dropdownOptions && !dropdownOptions.disabledDialCode">
             {{  parsedMode === 'national' ? phoneNumber.national : phoneNumber.number  }}
           </span>
-          <input type="hidden" id="internationalNumber" :value="phoneNumber.number">
+          <input type="hidden" :id="phoneNumber.national" :value="phoneNumber.number">
         </li>
       </ul>
     </div>
