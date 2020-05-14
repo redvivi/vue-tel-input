@@ -25,7 +25,7 @@
         >
           <div v-if="enabledFlags" :class="['vti__flag', phoneNumber.iso2.toLowerCase()]" />
           <span v-if="dropdownOptions && !dropdownOptions.disabledDialCode">
-            {{  national ? phoneNumber.national : phoneNumber.number  }}
+            {{  parsedMode === 'national' ? phoneNumber.national : phoneNumber.number  }}
           </span>
         </li>
       </ul>
@@ -75,10 +75,6 @@ export default {
     value: {
       type: String,
       default: '',
-    },
-    national: {
-      type: Boolean,
-      default: false,
     },
     inputNumbers: {
       type: Array,
@@ -217,9 +213,6 @@ export default {
       return this.placeholder;
     },
     parsedMode() {
-      if (this.national) {
-        return 'national';
-      }
       if (this.customValidate) {
         return 'input';
       }
@@ -428,7 +421,8 @@ export default {
       };
     },
     choose(country, toEmitInputEvent = false) {
-      this.selectedPhone = this.national ? country.national : country.number;
+      this.selectedPhone = this.parsedMode === 'national' ? country.national : country.number;
+
       let parsedCountry = country;
       if (typeof parsedCountry === 'string') {
         parsedCountry = this.findCountry(parsedCountry);
