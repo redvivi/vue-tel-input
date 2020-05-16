@@ -320,7 +320,7 @@ export default {
       this.phones.push({
         iso2: number.getRegionCode(),
         number: phone,
-        national: number.getNumber('national').replace(/ /g, ''),
+        national: number.getNumber('national'),
       });
     });
 
