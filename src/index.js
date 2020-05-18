@@ -1,6 +1,7 @@
 import utils, { defaultOptions } from './utils';
 import VueTelInput from './components/vue-tel-input.vue';
 import VueTelSelect from './components/vue-tel-select.vue';
+import VueTelShow from './components/vue-tel-show.vue';
 
 export function install(Vue, customOptions = {}) {
   if (install.installed) return;
@@ -13,9 +14,10 @@ export function install(Vue, customOptions = {}) {
 
   Vue.component('vue-tel-input', VueTelInput);
   Vue.component('vue-tel-select', VueTelSelect);
+  Vue.component('vue-tel-show', VueTelShow);
 }
 
-export { VueTelInput, VueTelSelect };
+export { VueTelInput, VueTelSelect, VueTelShow };
 
 const plugin = {
   install,

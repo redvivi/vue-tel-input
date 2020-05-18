@@ -579,7 +579,7 @@ export default {
 </script>
 
 <style src="../assets/sprite.css"></style>
-<style>
+<style scoped>
   .vue-tel-input {
     border-radius: 3px;
     display: flex;

@@ -1,58 +1,33 @@
 <template>
   <div :class="['vue-tel-input', wrapperClasses, { disabled: disabled }]">
     <div
-      v-click-outside="clickedOutside"
-      :class="['vti__dropdown', { open: open }]"
-      :tabindex="dropdownOptions && dropdownOptions.tabindex ? dropdownOptions.tabindex : 0"
-      @keydown="keyboardNav"
-      @click="toggleDropdown"
-      @keydown.esc="reset"
-    >
-      <span class="vti__selection">
-        <div v-if="enabledFlags" :class="['vti__flag', activeCountry.iso2.toLowerCase()]" />
-        <span v-if="enabledCountryCode" class="vti__country-code">
-          +{{ activeCountry.dialCode }}
-        </span>
-        <slot name="arrow-icon" :open="open">
-          <span class="vti__dropdown-arrow">{{ open ? "▲" : "▼" }}</span>
-        </slot>
-      </span>
-      <ul ref="list" class="vti__dropdown-list" v-show="open" :class="dropdownOpenDirection">
-        <li
-          v-for="(pb, index) in sortedCountries"
-          :class="['vti__dropdown-item', getItemClass(index, pb.iso2)]"
-          :key="pb.iso2 + (pb.preferred ? '-preferred' : '')"
-          @click="choose(pb, true)"
-          @mousemove="selectedIndex = index"
-        >
-          <div v-if="enabledFlags" :class="['vti__flag', pb.iso2.toLowerCase()]" />
-          <strong>{{ pb.name }}</strong>
-          <span v-if="dropdownOptions && !dropdownOptions.disabledDialCode">
-            +{{ pb.dialCode }}
-          </span>
-        </li>
-      </ul>
+            v-click-outside="clickedOutside"
+            :class="['vti__dropdown', { open: open }]"
+            @keydown="keyboardNav"
+            @keydown.esc="reset">
+      <div class="vti__selection">
+        <div v-if="enabledFlags" :class="['vti__flag', activeCountry.iso2.toLowerCase()]"></div>
+      </div>
     </div>
     <input
-      ref="input"
-      type="tel"
-      v-model="phone"
-      :autocomplete="autocomplete"
-      :autofocus="autofocus"
-      :class="['vti__input', inputClasses]"
-      :disabled="disabled"
-      :id="inputId"
-      :maxlength="maxLen"
-      :name="name"
-      :placeholder="parsedPlaceholder"
-      :readonly="readonly"
-      :required="required"
-      :tabindex="inputOptions && inputOptions.tabindex ? inputOptions.tabindex : 0"
-      @blur="onBlur"
-      @focus="onFocus"
-      @input="onInput"
-      @keyup.enter="onEnter"
-      @keyup.space="onSpace"
+            ref="input"
+            type="tel"
+            v-model="selectedPhone"
+            :autocomplete="autocomplete"
+            :autofocus="autofocus"
+            :class="['vti__input', inputClasses]"
+            :disabled="true"
+            :id="inputId"
+            :maxlength="maxLen"
+            :name="name"
+            :readonly="readonly"
+            :required="required"
+            :tabindex="inputOptions && inputOptions.tabindex ? inputOptions.tabindex : 0"
+            @blur="onBlur"
+            @focus="onFocus"
+            @input="onInput"
+            @keyup.enter="onEnter"
+            @keyup.space="onSpace"
     />
   </div>
 </template>
@@ -71,7 +46,7 @@ function getDefault(key) {
 }
 
 export default {
-  name: 'VueTelInput',
+  name: 'VueTelShow',
   directives: {
     clickOutside,
   },
@@ -79,6 +54,9 @@ export default {
     value: {
       type: String,
       default: '',
+    },
+    inputNumber: {
+      type: String,
     },
     allCountries: {
       type: Array,
@@ -189,6 +167,8 @@ export default {
   },
   data() {
     return {
+      selectedPhone: '',
+      phones: [],
       phone: '',
       activeCountry: { iso2: '' },
       open: false,
@@ -238,7 +218,7 @@ export default {
       if (this.ignoredCountries.length) {
         return this.allCountries.filter(
           ({ iso2 }) => !this.ignoredCountries.includes(iso2.toUpperCase())
-            && !this.ignoredCountries.includes(iso2.toLowerCase()),
+                  && !this.ignoredCountries.includes(iso2.toLowerCase()),
         );
       }
 
@@ -273,7 +253,7 @@ export default {
       if (value) {
         this.phone = this.phoneText;
       }
-      this.$emit('validate', this.phoneObject);
+      this.$emit('validate-select', this.phoneObject);
       this.$emit('onValidate', this.phoneObject); // Deprecated
     },
     value() {
@@ -313,19 +293,27 @@ export default {
     },
   },
   mounted() {
+    const number = PhoneNumber(this.inputNumber);
+    this.phones.push({
+      iso2: number.getRegionCode(),
+      number: this.inputNumber,
+      national: number.getNumber('national'),
+    });
+
     this.initializeCountry()
       .then(() => {
         if (!this.phone
-          && this.inputOptions
-          && this.inputOptions.showDialCode
-          && this.activeCountry.dialCode) {
+                && this.inputOptions
+                && this.inputOptions.showDialCode
+                && this.activeCountry.dialCode) {
           this.phone = `+${this.activeCountry.dialCode}`;
         }
-        this.$emit('validate', this.phoneObject);
+        this.$emit('validate-select', this.phoneObject);
         this.$emit('onValidate', this.phoneObject); // Deprecated
       })
       .catch(console.error)
       .finally(() => {
+        this.choose(this.phones[0]);
         this.finishMounted = true;
       });
   },
@@ -360,7 +348,7 @@ export default {
           }
         }
         const fallbackCountry = this.findCountry(this.preferredCountries[0])
-          || this.filteredCountries[0];
+                || this.filteredCountries[0];
         /**
          * 3. Check if fetching country based on user's IP is allowed, set it as the default country
          */
@@ -410,6 +398,8 @@ export default {
       };
     },
     choose(country, toEmitInputEvent = false) {
+      this.selectedPhone = this.parsedMode === 'national' ? country.national : country.number;
+
       let parsedCountry = country;
       if (typeof parsedCountry === 'string') {
         parsedCountry = this.findCountry(parsedCountry);
@@ -419,9 +409,9 @@ export default {
       }
       this.activeCountry = parsedCountry || this.activeCountry || {};
       if (this.phone
-        && this.phone[0] === '+'
-        && this.activeCountry.iso2
-        && this.phoneObject.number.national) {
+              && this.phone[0] === '+'
+              && this.activeCountry.iso2
+              && this.phoneObject.number.national) {
         // Attach the current phone number with the newly selected country
         this.phone = PhoneNumber(this.phoneObject.number.national, this.activeCountry.iso2)
           .getNumber('international');
@@ -500,10 +490,10 @@ export default {
         }
         const selEle = this.$refs.list.children[this.selectedIndex];
         if (selEle.offsetTop + selEle.clientHeight
-          > this.$refs.list.scrollTop + this.$refs.list.clientHeight) {
+                > this.$refs.list.scrollTop + this.$refs.list.clientHeight) {
           this.$refs.list.scrollTop = selEle.offsetTop
-            - this.$refs.list.clientHeight
-            + selEle.clientHeight;
+                  - this.$refs.list.clientHeight
+                  + selEle.clientHeight;
         }
       } else if (e.keyCode === 38) {
         // up arrow
@@ -540,7 +530,7 @@ export default {
           const selEle = this.$refs.list.children[this.selectedIndex];
           const needToScrollTop = selEle.offsetTop < this.$refs.list.scrollTop;
           const needToScrollBottom = selEle.offsetTop + selEle.clientHeight
-            > this.$refs.list.scrollTop + this.$refs.list.clientHeight;
+                  > this.$refs.list.scrollTop + this.$refs.list.clientHeight;
           if (needToScrollTop || needToScrollBottom) {
             this.$refs.list.scrollTop = selEle.offsetTop - this.$refs.list.clientHeight / 2;
           }
@@ -566,98 +556,96 @@ export default {
 
 <style src="../assets/sprite.css"></style>
 <style scoped>
-.vue-tel-input {
-  border-radius: 3px;
-  display: flex;
-  border: 1px solid #bbb;
-  text-align: left;
-}
-.vue-tel-input.disabled .selection,
-.vue-tel-input.disabled .dropdown,
-.vue-tel-input.disabled input {
-  cursor: no-drop;
-}
-.vue-tel-input:focus-within {
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
-  border-color: #66afe9;
-}
-.vti__dropdown {
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  justify-content: center;
-  position: relative;
-  padding: 7px;
-  cursor: pointer;
-}
-.vti__dropdown.show {
-  max-height: 300px;
-  overflow: scroll;
-}
-.vti__dropdown.open {
-  background-color: #f3f3f3;
-}
-.vti__dropdown:hover {
-  background-color: #f3f3f3;
-}
-.vti__selection {
-  font-size: 0.8em;
-  display: flex;
-  align-items: center;
-}
-.vti__selection .vti__country-code {
-  color: #666;
-}
-.vti__flag {
-  margin-right: 5px;
-  margin-left: 5px;
-}
-.vti__dropdown-list {
-  font-size: 0.8em;
-  z-index: 1;
-  padding: 0;
-  margin: 0;
-  text-align: left;
-  list-style: none;
-  max-height: 200px;
-  overflow-y: scroll;
-  position: absolute;
-  left: -1px;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  width: 390px;
-}
-.vti__dropdown-list.below {
-  top: 33px;
-}
-.vti__dropdown-list.above {
-  top: auto;
-  bottom: 100%;
-}
-.vti__dropdown-arrow {
-  transform: scaleY(0.5);
-  display: inline-block;
-  color: #666;
-}
-.vti__dropdown-item {
-  cursor: pointer;
-  padding: 4px 15px;
-}
-.vti__dropdown-item.highlighted {
-  background-color: #f3f3f3;
-}
-.vti__dropdown-item.last-preferred {
-  border-bottom: 1px solid #cacaca;
-}
-.vti__dropdown-item .vti__flag {
-  display: inline-block;
-  margin-right: 5px;
-}
-.vti__input {
-  border: none;
-  border-radius: 0 2px 2px 0;
-  width: 100%;
-  outline: none;
-  padding-left: 7px;
-}
+  .vue-tel-input {
+    border-radius: 3px;
+    display: flex;
+    border: 1px solid #bbb;
+    text-align: left;
+  }
+  .vue-tel-input.disabled .selection,
+  .vue-tel-input.disabled .dropdown,
+  .vue-tel-input.disabled input {
+    cursor: no-drop;
+  }
+  .vue-tel-input:focus-within {
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+    border-color: #66afe9;
+  }
+  .vti__dropdown {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    position: relative;
+    padding: 7px;
+  }
+  .vti__dropdown.show {
+    max-height: 300px;
+    overflow: scroll;
+  }
+  .vti__dropdown.open {
+    background-color: #f3f3f3;
+  }
+  .vti__dropdown:hover {
+    background-color: #f3f3f3;
+  }
+  .vti__selection {
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+  }
+  .vti__selection .vti__country-code {
+    color: #666;
+  }
+  .vti__flag {
+    margin-right: 5px;
+    margin-left: 5px;
+  }
+  .vti__dropdown-list-select {
+    font-size: 0.8em;
+    z-index: 1;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    list-style: none;
+    max-height: 200px;
+    position: absolute;
+    left: -1px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    width: 220px;
+  }
+  .vti__dropdown-list-select.below {
+    top: 33px;
+  }
+  .vti__dropdown-list-select.above {
+    top: auto;
+    bottom: 100%;
+  }
+  .vti__dropdown-arrow {
+    transform: scaleY(0.5);
+    display: inline-block;
+    color: #666;
+  }
+  .vti__dropdown-item {
+    cursor: pointer;
+    padding: 4px 15px;
+  }
+  .vti__dropdown-item.highlighted {
+    background-color: #f3f3f3;
+  }
+  .vti__dropdown-item.last-preferred {
+    border-bottom: 1px solid #cacaca;
+  }
+  .vti__dropdown-item .vti__flag {
+    display: inline-block;
+    margin-right: 5px;
+  }
+  .vti__input {
+    border: none;
+    border-radius: 0 2px 2px 0;
+    width: 100%;
+    outline: none;
+    padding-left: 7px;
+  }
 </style>
