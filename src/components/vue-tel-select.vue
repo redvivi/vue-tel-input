@@ -15,7 +15,7 @@
           <span class="vti__dropdown-arrow">{{ open ? "▲" : "▼" }}</span>
         </slot>
       </div>
-      <ul ref="list" class="vti__dropdown-list" v-show="open" :class="dropdownOpenDirection">
+      <ul ref="list" class="vti__dropdown-list-select" v-show="open" :class="dropdownOpenDirection">
         <li
                 v-for="(phoneNumber, index) in phones"
                 :class="['vti__dropdown-item', getItemClass(index, phoneNumber.iso2)]"
@@ -626,24 +626,24 @@ export default {
     margin-right: 5px;
     margin-left: 5px;
   }
-  .vti__dropdown-list {
+  .vti__dropdown-list-select {
+    font-size: 0.8em;
     z-index: 1;
     padding: 0;
     margin: 0;
     text-align: left;
     list-style: none;
     max-height: 200px;
-    overflow-y: scroll;
     position: absolute;
     left: -1px;
     background-color: #fff;
     border: 1px solid #ccc;
-    width: 390px;
+    width: 220px;
   }
-  .vti__dropdown-list.below {
+  .vti__dropdown-list-select.below {
     top: 33px;
   }
-  .vti__dropdown-list.above {
+  .vti__dropdown-list-select.above {
     top: auto;
     bottom: 100%;
   }
