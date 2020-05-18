@@ -1,6 +1,7 @@
 <template>
   <div :class="['vue-tel-input', wrapperClasses, { disabled: disabled }]">
     <div
+            v-if="!reversed"
             v-click-outside="clickedOutside"
             :class="['vti__dropdown', { open: open }]"
             @keydown="keyboardNav"
@@ -15,7 +16,7 @@
             v-model="selectedPhone"
             :autocomplete="autocomplete"
             :autofocus="autofocus"
-            :class="['vti__input', inputClasses]"
+            :class="['vti__input', inputClasses, {reversed: reversed}]"
             :disabled="true"
             :id="inputId"
             :maxlength="maxLen"
@@ -29,6 +30,16 @@
             @keyup.enter="onEnter"
             @keyup.space="onSpace"
     />
+    <div
+            v-if="reversed"
+            v-click-outside="clickedOutside"
+            :class="['vti__dropdown', { open: open }]"
+            @keydown="keyboardNav"
+            @keydown.esc="reset">
+      <div class="vti__selection">
+        <div v-if="enabledFlags" :class="['vti__flag', activeCountry.iso2.toLowerCase()]"></div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -54,6 +65,10 @@ export default {
     value: {
       type: String,
       default: '',
+    },
+    reversed: {
+      type: Boolean,
+      default: false,
     },
     inputNumber: {
       type: String,
@@ -556,10 +571,11 @@ export default {
 
 <style src="../assets/sprite.css"></style>
 <style scoped>
+  .reversed{
+    text-align: right;
+  }
   .vue-tel-input {
-    border-radius: 3px;
     display: flex;
-    border: 1px solid #bbb;
     text-align: left;
   }
   .vue-tel-input.disabled .selection,
